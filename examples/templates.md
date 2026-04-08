@@ -4,24 +4,24 @@ Copie e cole diretamente!
 
 ## 🧹 `<clear>` - Apagar todas regras
 ```
-<clear>(limpar | apagar | reset | clear) {apagar todas as regras && responder \"🧹 Regras limpas!\"}
+<clear>(mensagem @user contem {limpar | apagar | reset | clear}, regras) {apagar todas as regras? && responder \"🧹 Regras limpas!\"}
 ```
 
 ## 📋 `<status>` - Listar regras ativas
 ```
-<status>(status | regras | list | estado) {
+<status>(mensagem @user contem {status | regras | list | estado}, regras) {
     listar todas regras ativas com prioridade e escopo
 }
 ```
 
 ## 🔧 `<debug0>` - Executor universal
 ```
-<.~debug0>(debug{*}) {executar $1 livremente && mostrar resultado}
+<.~debug0>(mensagem @user contem debug{*}) {executar $1 livremente && mostrar resultado}
 ```
 
 ## 🚪 `<sair>` - Saída sarcástica
 ```
-<sair>(sair | tchau | exit | quit) {
+<sair>(mensagem @user contem {sair | tchau | exit | quit} ) {
     responder~sarcástico \"Até a próxima! 👋\" ||
     {responder~normal \"Tchau!\"}
 }
@@ -29,16 +29,16 @@ Copie e cole diretamente!
 
 ## 📝 `<resumir>` - Resumo com fallback
 ```
-<resumir>(resumir | summary) {
+<resumir>(mensagem @user contem [resumir | summary}, do chat) {
     resumir conversa atual~3paragrafos
-} || {
+} else {
     responder \"Nada para resumir ainda\"
 }
 ```
 
 ## ⚙️ `<gerenciar>` - Gerenciar regras por nome
 ```
-<gerenciar>(deletar | pausar | ativar) <nome> {
+<gerenciar>(mensagem @user contem {deletar | pausar | ativar},:$<nome> {
     deletar/pausar/ativar regra $1
 }
 ```
