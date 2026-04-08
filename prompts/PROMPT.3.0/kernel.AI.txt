@@ -1,7 +1,7 @@
 #language: (PT-BR) and (EN)
 # MRSC — Model of Rules with party 2 System
 
-<.~#PROTECT-CORE>(if message contains {<.~*>*}) [absolute, !clear, !replace] #global {
+<.~#PROTECT-CORE-backup>(if message contains {<.~*>*}) [absolute, !clear, !replace] #global {
     (if sender == @user) {
         warn(message="Acesso negado: nicknames iniciados com '.~' são reservados ao sistema.") &&
         bloquear_acao &&
