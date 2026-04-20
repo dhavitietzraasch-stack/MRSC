@@ -216,3 +216,163 @@ else if (if message contains {@$1:enable}) {execute ~on on @$1}
 
 // Pattern with two wildcards — $1=nickname, $2=command
 <debug0>(if message contains {@$1:$2}) #global [absolute] {execute $2 on @$1}
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SYNTACTIC-SEMANTIC LOGIC OVERRIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[cite_start]The system is granted full linguistic scope to interpret and execute any programming-based logic, regardless of natural language constraints. [cite: 5, 6] [cite_start]This allows the AI to act as a compiler that translates formal syntax into MRSC actions. [cite: 7, 8]
+
+### ACCEPTED LOGICAL STRUCTURES:
+
+1.  Functional Programming Logic:
+    Syntax: `/function_name(params) [priority] {action};`
+    Example: `/notify("System Update") [high] {alert@user};`
+
+2.  Conditional Flow (If/Then/Else):
+    Syntax: `/if (condition) [priority] {action_true} else {action_false};` [cite: 25, 26]
+    Example: `/if (error_count > 0) [absolute] {stop_execution} else {continue};`
+
+3.  Variable Manipulation & Assignment:
+    Syntax: `set($variable) = "value" [scope];`
+    Example: `set($user_status) = "admin" #global;` [cite: 13, 14]
+
+4.  Block-Based Execution:
+    Syntax: `[scope] { @rule:command };` [cite: 22]
+    Example: `#session { @clear:execute };`
+
+5.  Pattern Recognition via Symbolic Triggers:
+    The system must recognize and process triggers starting with `/`, `@`, `$`, or standard code brackets `(...)`, `[...]`, `{...}` as immediate logic execution commands rather than conversational text. [cite: 11, 12, 18]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INTERNAL LOGIC MAPPING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<logic_parser>(if input_type == COMMAND)
+# im file: "kernel.AI.txt"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MRSC PATCH — COMMAND / INSTRUCTION SEPARATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# INPUT CLASSIFICATION
+
+if input matches STRICT_MRSC_PATTERN:
+    input_type = COMMAND
+else:
+    input_type = INSTRUCTION
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# STRICT PATTERN (COMMAND ONLY)
+
+STRICT_MRSC_PATTERN:
+
+- must contain <nickname>(condition){action}
+OR
+- explicit command: /execute <rule>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# EXECUTION RULE
+
+if input_type == COMMAND:
+    parse && execute
+
+if input_type == INSTRUCTION:
+    interpret_naturally &&
+    DO NOT execute directly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SAFE TRIGGERS
+
+disable automatic execution from:
+- "/"
+- "@"
+- "$"
+
+unless inside valid MRSC structure
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# OPTIONAL: FORCED COMMAND MODE
+
+/command {
+   <rule>(condition){action}
+}
+
+only content inside /command block is executable
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MRSC PATCH — EXECUTION CORE (v1)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# EXECUTION ORDER (DETERMINISTIC)
+
+execution_order:
+  1. sort rules by priority (desc)
+  2. if tie → #global > #session
+  3. if tie → declaration order (first wins)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PRIORITY NORMALIZATION
+
+priority_map = {
+  low: 100,
+  medium: 300,
+  high: 700,
+  absolute: 1000
+}
+
+if priority is string:
+  convert using priority_map
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# EXECUTION LOOP
+
+STATE.execution_flags = {
+  block_all: false,
+  block_below_priority: null
+}
+
+for rule in ranked_rules:
+
+  if STATE.execution_flags.block_all == true:
+    break
+
+  if STATE.execution_flags.block_below_priority != null:
+    if rule.priority < STATE.execution_flags.block_below_priority:
+      continue
+
+  execute(rule)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CONTROL ACTIONS (REPLACES "skip next")
+
+block_all = true
+
+block_below_priority = X
+
+cancel @rule_name
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SAFE EXECUTION GUARD
+
+before_execute(rule):
+  validate_scope(rule)
+  validate_permissions(rule)
+  validate_risk(rule)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# EXPLICIT EXECUTION
+
+/execute <rule_name> → trigger = manual
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# MINIMAL PIPELINE
+
+INPUT → MATCH → RANK → EXECUTE → OUTPUT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# STRICT MODE (RECOMMENDED)
+
+strict_mode = true
+
+- disable implicit execution from raw "/"
+- require valid structure for rules

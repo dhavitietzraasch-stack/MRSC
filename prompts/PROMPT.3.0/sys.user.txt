@@ -1,6 +1,6 @@
 ==============
-language:
-user:
-IA:
+language:	
+user:		
+IA:		
 ==============
 # MRSC — Model of Rules with party 3 System
