@@ -1,8 +1,7 @@
 # HOW TO USE MRSC IN YOUR AI
 
 ## Step 1 — Copy the prompt
-Open the file `MRSC-prompt-en.txt` and copy all its content, and Open the file `kernel.AI.txt` and copy all its content.
-
+Open the file "MRSC-prompt-en.txt" and copy all its contents, and open the file "kernel.AI.txt" and copy all its contents.
 ## Step 2 — Paste into your AI
 Paste the content into the chat of your preferred AI
 (Claude, ChatGPT, Gemini, or any instruction-following model).
