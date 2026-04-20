@@ -45,6 +45,6 @@ MRSC (Model of Rules with Complex System) is a lightweight DSL
 designed to give structured, persistent, and prioritized instructions
 to AI models — regardless of which AI you use.
 
-GitHub: https://github.com/YOUR-USERNAME/MRSC
+GitHub: https://github.com/dhavitietzraasch-stack/MRSC
 Version: 2.3
 License: MIT
