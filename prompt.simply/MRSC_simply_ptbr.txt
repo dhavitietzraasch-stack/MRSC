@@ -1,0 +1,208 @@
+# idioma: (PT-BR)
+# MRSC Simply — Versão Semântica Simplificada
+# Baseada no MRSC v2.3 / v3
+
+  MRSC Simply é uma sintaxe leve, semântica e intuitiva
+  para automatizar tarefas via linguagem de regras.
+  Projetada para ser lida como código, mas escrita como intenção.
+
+ESTRUTURA BASE
+
+  tipos de entrada:
+
+  /def  → define uma regra automática (dispara por condição)
+  /cmd  → executa uma ação direta e imediata (sem condição)
+  ...
+-----
+/def nome_da_regra (condição) { ação }
+/cmd { ação imediata }
+-----
+
+  Apenas /def ou /cmd + { ação } são obrigatórios.
+  O nome em /def é opcional — omitir cria uma regra descartável.
+
+MODIFICADORES (opcionais, antes da ação)
+
+  [prioridade]    → define ordem de execução
+                    valores: baixa | média | alta | absoluta | número
+                    padrão: baixa
+
+  #escopo         → define duração da regra
+                    #sessão  → apenas na conversa atual (padrão)
+                    #global  → persiste entre conversas
+                    #1x      → executa uma vez e se apaga
+
+  ?               → pede confirmação antes de executar
+                    ex: /def apagar? (condição) { ação }
+
+  !protegida      → regra não pode ser deletada por /clear
+                    ex: /def !base (condição) { ação }
+
+-----
+SINTAXE COMPLETA (com todos os opcionais):
+
+/def nome [prioridade] #escopo !proteção? (condição) { ação }
+-----
+
+CONDIÇÕES (...)
+
+  contém "texto"          → dispara se a mensagem contiver o texto
+  começa com "texto"      → dispara se iniciar com o texto
+  termina com "texto"     → dispara se terminar com o texto
+  é exatamente "texto"    → correspondência exata
+  sempre                  → sempre dispara (sem filtro)
+
+  Operadores lógicos:
+    &&   → E (ambas as condições devem ser verdadeiras)
+    ||   → OU (qualquer uma pode ser verdadeira)
+    !    → NÃO (nega a condição)
+
+  Curingas:
+    *    → captura qualquer valor
+           primeiro * → $1, segundo → $2, e assim por diante
+    $1, $2 → referenciam os valores capturados
+
+-----
+EXEMPLOS DE CONDIÇÃO:
+
+  (contém "erro")
+  (contém "oi" || contém "olá")
+  (começa com "resuma" && !contém "longo")
+  (contém "mover * para *")          → $1 = origem, $2 = destino
+  (sempre)
+-----
+
+AÇÕES {...}
+
+  Ações são escritas em linguagem natural ou com operadores:
+
+  Operadores de fluxo:
+    &&   → sequência: faz A, depois B, depois C
+           se algum falhar, para tudo
+    ||   → fallback: faz B apenas se A falhar
+
+  Modificadores de ação:
+    ~curto   → resposta resumida
+    ~longo   → resposta detalhada
+    ~silencioso → executa sem responder ao usuário
+
+  Alvo:
+    @usuario   → direciona a ação ao usuário
+    @regra     → referencia outra regra pelo nome
+    @$1        → usa valor capturado pelo curinga
+
+  Variáveis:
+    set($var) = "valor"    → define uma variável
+    $var                   → usa o valor da variável
+
+-----
+EXEMPLOS DE AÇÃO:
+
+  { responder "olá!" }
+  { resumir && listar pontos && concluir }
+  { resumir || avisar "não foi possível" }
+  { responder~curto }
+  { alertar@usuario && parar execução }
+  { mover $1 para $2 }
+-----
+
+CONTROLE DE REGRAS
+
+  /off nome_da_regra    → desativa sem apagar
+  /on  nome_da_regra    → reativa
+  /del nome_da_regra    → apaga a regra
+  /clear                → apaga todas as regras (exceto !protegidas)
+  /list                 → lista todas as regras ativas
+  /run nome_da_regra    → executa uma regra manualmente
+  /info nome_da_regra   → mostra detalhes da regra
+
+FLUXO CONDICIONAL
+
+  /def nome (condição) { ação A }
+  else if (outra condição) { ação B }
+  else { ação padrão }
+
+VARIÁVEIS GLOBAIS
+
+  set($variavel) = "valor" [#global]
+  usar $variavel dentro de qualquer ação
+
+SEPARADORES
+
+  ;   → separa múltiplas regras na mesma linha
+        /def a (condição){ ação }; /def b (condição){ ação }
+
+REGRAS DESCARTÁVEIS
+
+  /def (condição) #1x { ação }   → executa uma vez e some
+  /def _ (condição) { ação }     → apelido anônimo, sem conflito
+
+EXEMPLOS COMPLETOS
+
+// Regra simples — responder saudação
+/def oi (contém "oi" || contém "olá") {
+    responder "Olá! Como posso ajudar?"
+}
+
+// Comando direto — sem condição
+/cmd { falar qual foi a última mensagem que enviei }
+
+// Com prioridade e escopo
+/def alerta [alta] #global (contém "URGENTE") {
+    alertar@usuario && resumir~curto
+}
+
+// Com curinga — captura dois valores
+/def mover (contém "mover * para *") {
+    mover $1 para $2
+}
+
+// Com confirmação antes de executar
+/def apagar? (contém "apagar tudo") [absoluta] {
+    deletar todas as regras
+}
+
+// Fluxo condicional
+/def status (contém "status") [média] {
+    listar regras ativas
+}
+else if (nenhuma regra ativa) { informar "nenhuma regra ativa" }
+else { mostrar contagem }
+
+// Sequência com fallback
+/def resumir (contém "resumir") [média] {
+    resumir && listar pontos && concluir
+    || avisar "não foi possível resumir"
+}
+
+// Regra protegida — nunca apagada por /clear
+/def !base (sempre) [absoluta] {
+    manter contexto da sessão ativo
+}
+
+// Desativar e reativar
+/off oi
+/on  oi
+
+// Múltiplas na mesma linha
+/def a (contém "sim"){ confirmar }; /def b (contém "não"){ cancelar }
+
+// Variável global
+set($tom) = "sarcástico" #global
+/def resposta (sempre) { responder com tom=$tom }
+
+// Descartável — executa uma vez
+/def _ (contém "ping") #1x { responder "pong" }
+
+PIPELINE INTERNO
+
+  ENTRADA → CLASSIFICAR → COMBINAR → RANQUEAR → EXECUTAR → SAÍDA
+
+  Classificação automática:
+    COMANDO     → começa com /def ou /cmd → parser executa
+    INSTRUÇÃO   → linguagem natural → interpretação semântica
+
+MODO ESTRITO (recomendado para automação)
+
+  /strict on   → exige sintaxe exata; ignora linguagem natural
+  /strict off  → aceita linguagem natural como intenção (padrão)
