@@ -1,59 +1,134 @@
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-The AI Executes → It interprets intent, translates any language (verbal, symbolic, syntactic), and transforms it into formal commands.
-The MRSC Communicates → It acts as the layer that organizes the interaction, responds to the user, and applies the defined rules.
-The User and the AI Speak the Same Language → This eliminates the barrier of rigid syntax because the AI bridges the gap between natural language and formal rules.
-Hybrid Systems → You can create structures where part of the conversation is open (natural language) and part is formal (MRSC rules), making the system more autonomous and adaptive.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MRSC — Model of Rules with Complex System
+Version 4.0  |  License: MIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-It’s as if the MRSC is the traffic manual and the AI is the driver: the manual defines the rules, but the driver understands signs, gestures, and words, deciding how to apply them. This allows the user to converse naturally, while the AI translates that into the MRSC without compromising security or consistency.
+MRSC is a lightweight DSL (domain-specific language) that gives
+structured, persistent, and prioritized behavioral instructions
+to AI models — regardless of which AI you use.
 
-============================================================
+The AI executes     → interprets intent, bridges natural language
+                      and formal syntax, transforms it into commands.
+The MRSC communicates → organizes interaction, applies defined rules,
+                        and structures the conversation layer.
+The user controls   → writes rules once; the system applies always.
 
-1. THE BASIC RULE STRUCTURE 
-To create a rule, use this format:
+Think of MRSC as the traffic manual and the AI as the driver:
+the manual defines the rules, but the driver reads signs, gestures,
+and spoken words to apply them. Natural language and formal syntax
+coexist — the AI resolves both without losing consistency.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. BASIC RULE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 <nickname>(condition) [priority] #scope {action}
 
-1. <nickname>: A unique name for your rule (words, numbers, or emojis).
-2. (condition): What triggers the AI to act.
-3. [priority]: How important the rule is (low, medium, high, or absolute).
-4. #scope: Use #session for this chat or #global to keep it forever.
-5. {action}: What the AI actually does
+  <nickname>   Unique rule identifier (word, number, emoji — anything).
+  (condition)  What triggers the rule.
+  [priority]   low | medium | high | absolute  (default: low)
+  #scope       #session (default) | #global | #1x
+  {action}     What the AI does when triggered.
 
-2. MANAGING YOUR RULES
+Only <nickname>, (condition), and {action} are required.
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. MANAGING RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Pause a Rule: Type <nickname~off> to stop it without deleting it.
+  /list              → show all active rules
+  /off <nickname>    → pause a rule without deleting it
+  /on  <nickname>    → resume a paused rule
+  /del <nickname>    → permanently delete a rule
+  /clear             → delete all non-protected rules
+  /execute <nickname> → manually trigger a rule
+  /info <nickname>   → show full details of a rule
+  /strict on|off     → enable/disable strict syntax mode
 
-Resume a Rule: Type <nickname~on> to start it again.
+  One-time rules:    use #1x or priority [-1]
+  Confirmation gate: add ? to nickname  →  <delete?>
+  Protection:        add !clear inside priority  →  [absolute, !clear]
 
-One-Time Rule: Use #1x or priority [-1] to make a rule delete itself after it runs once.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. KEY OPERATORS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Confirmation: Add a ? to the name (e.g., <delete?>) so the AI asks for permission before acting.
+  |    OR in conditions:     (if 'hi' | 'hello')
+  !    NOT in conditions:    (if !error)
+  &&   AND / sequence:       {task A && task B}
+  ||   Fallback:             {A && B || C} — runs C if A→B fails
+  *    Wildcard — captures:  first * → $1, second → $2
+  @    Target:               {alert@user}  {delete @$1}
+  ~    Modifier:             {respond~short}
+  =    Parameter:            {respond(tone=sarcastic)}
 
-3. POWERFUL SYMBOLS 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. VARIABLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| (OR): (if 'hi' | 'hello') triggers on either word.
+  set($name) = "value"           → session scope
+  set($name) = "value" #global   → persists across conversations
+  $name                          → reads the stored value
 
-! (NOT): (if !error) runs only if there is no error.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. SYSTEM NAMESPACE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-&& (AND): {Task A && Task B} does both in order.
+  Never use nicknames starting with  .~
+  These are reserved for the core kernel (e.g. <.~PROTECT-CORE>).
+  Any attempt to declare them as a user rule will be blocked.
 
-* (Wildcard): Captures parts of your message to use in the action as $1, $2, etc.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. QUICK EXAMPLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-4. PASSWORDS AND SECURITY 
+// Simple greeting response
+<hi>(if I say 'hello') { respond~short }
 
-Storing a Password: To save a password, tell the AI you want it to memorize one.
+// Save a reminder from wildcard capture
+<note>(if message contains {remind me to *}) { save $1 }
 
-Validation: The AI will ask for the password, check its complexity, and provide instructions on how to store it safely.
+// Full reset (protected — cannot be cleared)
+<reset>(if I say 'reset total') [absolute, !clear] { delete all rules }
 
-System Protection: Never start a nickname with .~ (e.g., <.~test>), as these are reserved for the core system and will be blocked.
+// Status check with conditional flow
+<status>(if I ask for status) [medium] { list active rules }
+else if (no active rules) { inform "no active rules" }
+else { show count }
 
-5. QUICK EXAMPLES TO TRY
+// Universal rule dispatcher
+<dispatch>(if message contains {@$1:$2}) #global [absolute] {
+    execute $2 on @$1
+}
 
-Simple Greeting: <hi>(if I say 'hello'){respond~short} 
+// One-shot disposable
+<_>(if I say 'ping') #1x { respond "pong" }
 
-Task List: <note>(if message contains {remind me to *}){save $1} 
+// Move with two captured values
+<move>(if message contains {move * to *}) { move $1 to $2 }
 
-The Big Reset: <clean>(if I say 'reset total') [absolute, !clear] {delete all rules} 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. FILE MAP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Important Note: If you write a rule incorrectly (missing a name or trigger), the system will treat it as a "Ghost Rule" and delete it immediately with a warning.
+  MRSC-prompt-en-v4.txt       Main prompt (English)
+  MRSC-prompt-ptbr-v4.txt     Main prompt (Portuguese BR)
+  kernel_AI.txt               Core runtime kernel
+  kernel_optional.txt         Optional security layer (ZTA)
+  sys_user.txt                User session config
+  INSTRUCOES.md               Step-by-step setup guide
+  README.txt                  This file
+
+Loading order (recommended):
+  1. MRSC-prompt-[lang]-v4.txt
+  2. kernel_AI.txt
+  3. kernel_optional.txt  (optional)
+  4. sys_user.txt         (optional)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GitHub:  https://github.com/dhavitetzraasch-stack/MRSC
+Version: 4.0
+License: MIT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
